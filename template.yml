@@ -1,0 +1,35 @@
+root:
+  path: DIRETORIO QUE POSSUI OS SUBDIRETORIOS
+command: &command
+  - echo "Oi usuário preguiçoso!" >> pode_deletar.tmp
+
+ola:
+  pattern:
+    - ola
+  command: *command
+  delay: 20
+
+foo:
+  pattern:
+    - foo
+  command: *command
+  delay: 20
+
+bar:
+  pattern:
+    - bar
+  command: *command
+
+foo_bar:
+  pattern:
+    - foo
+    - bar
+    - foo_bar
+  command: *command
+
+cenario:
+  company:
+    - ola
+    - foo
+    - bar
+    - foo_bar
