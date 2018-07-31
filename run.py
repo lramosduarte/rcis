@@ -1,3 +1,4 @@
+import argparse
 import os
 import yaml
 
@@ -5,7 +6,7 @@ from subprocess import Popen
 from time import sleep
 
 
-DADOS = yaml.load(open('template.yml'))
+DADOS = yaml.safe_load(open('teste.yml'))
 PATH_ROOT = DADOS['root']['path']
 DIRETORIOS = {diretorio.name: diretorio.path
     for diretorio in os.scandir(PATH_ROOT)
@@ -29,3 +30,9 @@ def rodar_cenario(nome):
                 with open('processos.PIDS', 'a') as arquivo_pids:
                     arquivo_pids.write('{}\n'.format(process.pid))
         sleep(DADOS[step].get('delay', 1))
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument('cenario', help='Nome do cenário que será utiilizado!')
+    args = parser.parse_args()
+    rodar_cenario(args.cenario)
