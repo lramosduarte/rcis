@@ -1,19 +1,19 @@
 root:
-  path: DIRETORIO QUE POSSUI OS SUBDIRETORIOS
+  path: ./teste
 command: &command
-  - echo "Oi usuário preguiçoso!" >> pode_deletar.tmp
+  - echo "Oi usuário preguiçoso!"
 
 ola:
   pattern:
     - ola
   command: *command
-  delay: 20
+  delay: 1
 
 foo:
   pattern:
     - foo
   command: *command
-  delay: 20
+  delay: 1
 
 bar:
   pattern:
@@ -29,7 +29,6 @@ foo_bar:
 
 cenario:
   company:
-    - ola
     - foo
     - bar
     - foo_bar
