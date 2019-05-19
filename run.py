@@ -46,9 +46,9 @@ def roda_comandos_no_diretorio(cenario, dados):
         padroes_nome_diretorio = dados[comandos]['pattern']
         for diretorio in diretorios:
             if (diretorio_compativel_com_pattern(diretorio.name, padroes_nome_diretorio)):
-                comandos = dados[diretorio.name]['command']
-                delay = dados[diretorio.name].get('delay')
-                _roda_comandos_em_processo_separado(comandos, diretorio.path, delay)
+                comando = dados[comandos]['command']
+                delay = dados[comandos].get('delay')
+                _roda_comandos_em_processo_separado(comando, diretorio.path, delay)
 
 
 def diretorio_compativel_com_pattern(diretorio, paterns):
