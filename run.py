@@ -1,7 +1,11 @@
+#!/usr/bin/python3
+
 import argparse
 import os
 import sys
 import yaml
+
+import asyncio
 
 from datetime import datetime
 from subprocess import Popen
@@ -29,26 +33,39 @@ class LogaPIDsEmArquivo:
                 arquivo_pids.write(msg_log.format(processo=msg_log_processo))
 
 
-
 def ler_arquivo(nome_arquivo):
     return yaml.safe_load(open(nome_arquivo))
 
 
 def roda_comandos_no_diretorio(cenario, dados):
-    try:
+    cenario_para_rodar = None
+
+    if cenario in dados['cenario']:
         cenario_para_rodar = dados['cenario'][cenario]
-    except KeyError:
+    elif cenario in dados:
+        cenario_para_rodar = dados[cenario]
+    else:
         print('Cenário inválido!')
         exit(1)
+
     diretorios = [diretorio for diretorio in os.scandir(dados['root']['path'])
                   if diretorio.is_dir()]
-    for comandos in cenario_para_rodar:
-        padroes_nome_diretorio = dados[comandos]['pattern']
-        for diretorio in diretorios:
-            if (diretorio_compativel_com_pattern(diretorio.name, padroes_nome_diretorio)):
-                comando = dados[comandos]['command']
-                delay = dados[comandos].get('delay')
-                _roda_comandos_em_processo_separado(comando, diretorio.path, delay)
+    
+    if type(cenario_para_rodar) == list:
+        for comandos in cenario_para_rodar:
+            roda_cenarios(dados[comandos], diretorios)
+    else:
+        roda_cenarios(cenario_para_rodar, diretorios)
+
+
+def roda_cenarios(cenario, diretorios):
+    padroes_nome_diretorio = cenario['pattern']
+
+    for diretorio in diretorios:
+        if (diretorio_compativel_com_pattern(diretorio.name, padroes_nome_diretorio)):
+            command = cenario['command']
+            delay = cenario.get('delay')
+            _roda_comandos_em_processo_separado(command, diretorio.path, delay)
 
 
 def diretorio_compativel_com_pattern(diretorio, paterns):
@@ -71,10 +88,24 @@ def _roda_comandos_em_processo_separado(comandos, path, delay):
     return processos
 
 
+def str2bool(v):
+    if isinstance(v, bool):
+        return v
+    if v.lower() in ('yes', 'true', 't', 'y', '1'):
+        return True
+    elif v.lower() in ('no', 'false', 'f', 'n', '0'):
+        return False
+    else:
+        raise argparse.ArgumentTypeError('Boolean value expected.')
+
+
 def cria_parser_argumentos_cli():
     parser = argparse.ArgumentParser()
     parser.add_argument('arquivo', help='Nome do arquivo de template', default='template.yml')
     parser.add_argument('cenario', help='Nome do cenário que será utiilizado!')
+    parser.add_argument('-f', '--foreground', help='Rodar cenário em foreground', default=False,
+        const=True, type=str2bool, nargs='?')
+
     try:
         return parser.parse_args()
     except SystemExit as e:
@@ -85,5 +116,16 @@ def cria_parser_argumentos_cli():
 
 if __name__ == "__main__":
     args = cria_parser_argumentos_cli()
+
     dados = ler_arquivo(args.arquivo)
     roda_comandos_no_diretorio(args.cenario, dados)
+
+    if args.foreground:
+        loop = asyncio.get_event_loop()
+
+        try:
+            loop.run_forever()
+        except KeyboardInterrupt as e:
+            print('Caught keyboard interrupt...')
+        finally:
+            loop.close()
